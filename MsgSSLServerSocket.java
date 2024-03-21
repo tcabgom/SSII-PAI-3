@@ -6,49 +6,59 @@ import java.io.PrintWriter;
 import javax.net.ssl.*;
 
 public class MsgSSLServerSocket {
-	
-	
-	/**
-	 * @param args
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	public static void main(String[] args) throws IOException, InterruptedException {
 
-	try {		
-		SSLServerSocketFactory factory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
-		SSLServerSocket serverSocket = (SSLServerSocket) factory.createServerSocket(3343);
-		
-		// wait for client connection and check login information
-		
-			System.err.println("Waiting for connection...");
+    public static void main(String[] args) {
+        SSLServerSocket serverSocket = null;
+        try {
+            SSLServerSocketFactory factory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+            serverSocket = (SSLServerSocket) factory.createServerSocket(3343);
 
-      		SSLSocket socket = (SSLSocket) serverSocket.accept();
-			
-			// open BufferedReader for reading data from client
-			BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			String msg = input.readLine();
+            System.err.println("Waiting for connection...");
 
-			// open PrintWriter for writing data to client
-			PrintWriter output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+            while (true) {
+                SSLSocket socket = null;
+                try {
+                    socket = (SSLSocket) serverSocket.accept();
 
-			if (msg.equals("Hola")) {
-				output.println("Welcome to the Server");
-			} else {
-				output.println("Incorrect message.");
-			}
+                    // Open BufferedReader for reading data from client
+                    BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    // Open PrintWriter for writing data to client
+                    PrintWriter output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 
-			output.close();
-			input.close();
-			socket.close();
+                    String msg = input.readLine();
 
-		} // end try
+                    if ("Hola".equals(msg)) {
+                        output.println("Welcome to the Server");
+                    } else {
+                        output.println("Incorrect message.");
+                    }
 
-		// handle exception communicating with client
-		catch (IOException ioException) {
-			ioException.printStackTrace();
-		}
-
-	}
-
+                    output.close();
+                    input.close();
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        if (socket != null) {
+                            socket.close();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (serverSocket != null) {
+                    serverSocket.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
+
